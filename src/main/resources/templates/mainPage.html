@@ -3,45 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AviaScan - Поиск дешевых авиабилетов</title>
-    <link rel="stylesheet" href="css/mainPageStyle.css">
+    <title>AviaScan - Поиск рейсов</title>
+    <link rel="stylesheet" href="css/datesPageStyle.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <header class="header">
 
+<body>
+    <div class="interactive-bg">
+        <div class="cursor-effect"></div>
+    </div>
+    
+    <header class="header">
         <div class="header__container">
             <h1 class="header__logo">AviaScan</h1>
             <nav class="header__nav">
-                <button class="header__profile-btn" aria-label="Профиль пользователя">
-                    <svg class="header__profile-icon" width="24" height="24" viewBox="0 0 24 24">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
-                </button>
+                <div class="header__buttons">
+                    <button class="header__notifications-btn" aria-label="Уведомления">
+                        <span class="material-icons">notifications</span>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <button class="header__profile-btn" aria-label="Профиль">
+                        <span class="material-icons">account_circle</span>
+                    </button>
+                </div>
             </nav>
         </div>
     </header>
 
     <main class="main">
-        <section class="search">
-            <h2 class="search__title">Найдите лучшие цены на авиабилеты</h2>
-            <form class="search-form" action="/search" method="GET">
+        <div class="search-container">
+            <h2 class="search-title">Найдите идеальный рейс</h2>
+            <form class="search-form">
                 <div class="search-form__group">
-                    <label class="search-form__label" for="from">Откуда</label>
-                    <input class="search-form__input" type="text" id="from" name="from" required>
+                    <div class="search-form__field">
+                        <span class="material-icons field-icon">flight_takeoff</span>
+                        <div class="field-content">
+                            <label for="from" class="search-form__label">Откуда</label>
+                            <input type="text" id="from" class="search-form__input" placeholder="Город вылета">
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="swap-button" aria-label="Поменять города местами">
+                        <span class="material-icons">swap_horiz</span>
+                    </button>
+
+                    <div class="search-form__field">
+                        <span class="material-icons field-icon">flight_land</span>
+                        <div class="field-content">
+                            <label for="to" class="search-form__label">Куда</label>
+                            <input type="text" id="to" class="search-form__input" placeholder="Город прилета">
+                        </div>
+                    </div>
                 </div>
-                <div class="search-form__group">
-                    <label class="search-form__label" for="to">Куда</label>
-                    <input class="search-form__input" type="text" id="to" name="to" required>
-                </div>
-                <button class="search-form__submit" type="submit">Найти билеты</button>
+
+                <button type="submit" class="search-button">
+                    <span class="material-icons">search</span>
+                    <span class="button-text">Найти рейсы</span>
+                </button>
             </form>
-        </section>
+        </div>
     </main>
 
-    <footer class="footer">
-        <div class="footer__container">
-            <p class="footer__copyright">&copy; 2024 AviaScan. Все права защищены.</p>
-        </div>
-    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bg = document.querySelector('.interactive-bg');
+            const cursorEffect = document.querySelector('.cursor-effect');
+            
+            document.addEventListener('mousemove', (e) => {
+                const x = e.clientX;
+                const y = e.clientY;
+                
+                cursorEffect.style.left = x + 'px';
+                cursorEffect.style.top = y + 'px';
+                
+                const trail = document.createElement('div');
+                trail.className = 'cursor-trail';
+                trail.style.left = x + 'px';
+                trail.style.top = y + 'px';
+                bg.appendChild(trail);
+                
+                setTimeout(() => {
+                    trail.remove();
+                }, 1000);
+                
+                // Создаем эффект боковой волны — левая волна
+                const leftWave = document.createElement('div');
+                leftWave.className = 'cursor-side-wave cursor-side-wave--left';
+                leftWave.style.left = (x - 20) + 'px';
+                leftWave.style.top = y + 'px';
+                bg.appendChild(leftWave);
+                
+                // Создаем эффект боковой волны — правая волна
+                const rightWave = document.createElement('div');
+                rightWave.className = 'cursor-side-wave cursor-side-wave--right';
+                rightWave.style.left = (x + 20) + 'px';
+                rightWave.style.top = y + 'px';
+                bg.appendChild(rightWave);
+                
+                setTimeout(() => {
+                    leftWave.remove();
+                    rightWave.remove();
+                }, 1500);
+            });
+
+            // Функционал кнопки swap
+            document.querySelector('.swap-button').addEventListener('click', function() {
+                const fromInput = document.getElementById('from');
+                const toInput = document.getElementById('to');
+                const tempValue = fromInput.value;
+                fromInput.value = toInput.value;
+                toInput.value = tempValue;
+
+                // Добавляем анимацию для полей при обмене
+                const fields = document.querySelectorAll('.search-form__field');
+                fields.forEach(field => {
+                    field.style.animation = 'none';
+                    field.offsetHeight; // Форсируем reflow
+                    field.style.animation = 'swapFields 0.5s ease';
+                });
+            });
+        });
+    </script>
 </body>
 </html>

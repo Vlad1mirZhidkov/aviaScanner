@@ -10,8 +10,14 @@ public class aviaScannerController {
     public String main(){
         return "mainPage";
     }
-    @GetMapping
-    public String getPlace() {
-        return "index";
+    @GetMapping("/dates")
+    public String dates(){
+        return "datesPage";
+    }
+
+    @GetMapping("/hotels")
+    public String hotels(){
+        return "hotelsPage";
     }
 }
+

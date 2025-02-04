@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AviaScan - Результаты поиска</title>
+    <link rel="stylesheet" href="css/datesPageStyle.css">
+    <!-- Подключение Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="interactive-bg">
+        <div class="cursor-effect"></div>
+    </div>
+    <header class="header">
+        <div class="header__container">
+            <h1 class="header__logo">AviaScan</h1>
+            <nav class="header__nav">
+                <div class="header__buttons">
+                    <button class="header__notifications-btn" aria-label="Уведомления">
+                        <span class="material-icons">notifications</span>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <button class="header__profile-btn" aria-label="Профиль">
+                        <span class="material-icons">account_circle</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <h2 class="results-title">City N - City Z</h2>
+        
+        <div class="results-container">
+            <div class="flight-card">
+                <div class="flight-info">Даты 1 - Стоимость билетов</div>
+            </div>
+            
+            <div class="flight-card">
+                <div class="flight-info">Даты 2 - Стоимость билетов</div>
+            </div>
+            
+            <div class="flight-card">
+                <div class="flight-info">Даты 3 - Стоимость билетов</div>
+            </div>
+            
+            <div class="flight-card">
+                <div class="flight-info">Даты 4 - Стоимость билетов</div>
+            </div>
+            
+            <div class="flight-card">
+                <div class="flight-info">Даты 5 - Стоимость билетов</div>
+            </div>
+            
+            <div class="flight-card">
+                <div class="flight-info">Даты 6 - Стоимость билетов</div>
+            </div>
+        </div>
+
+        <div class="pagination">
+            <button class="pagination__btn">1</button>
+            <button class="pagination__btn">2</button>
+            <button class="pagination__btn">3</button>
+            <button class="pagination__btn">n</button>
+        </div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bg = document.querySelector('.interactive-bg');
+            const cursorEffect = document.querySelector('.cursor-effect');
+            
+            document.addEventListener('mousemove', (e) => {
+                const x = e.clientX;
+                const y = e.clientY;
+                
+                cursorEffect.style.left = x + 'px';
+                cursorEffect.style.top = y + 'px';
+                
+                const trail = document.createElement('div');
+                trail.className = 'cursor-trail';
+                trail.style.left = x + 'px';
+                trail.style.top = y + 'px';
+                bg.appendChild(trail);
+                
+                setTimeout(() => {
+                    trail.remove();
+                }, 1000);
+                
+                const leftWave = document.createElement('div');
+                leftWave.className = 'cursor-side-wave cursor-side-wave--left';
+                const leftRandomY = Math.floor((Math.random() - 0.5) * 10);
+                leftWave.style.left = (x - 20) + 'px';
+                leftWave.style.top = (y + leftRandomY) + 'px';
+                bg.appendChild(leftWave);
+                
+                const rightWave = document.createElement('div');
+                rightWave.className = 'cursor-side-wave cursor-side-wave--right';
+                const rightRandomY = Math.floor((Math.random() - 0.5) * 10);
+                rightWave.style.left = (x + 20) + 'px';
+                rightWave.style.top = (y + rightRandomY) + 'px';
+                bg.appendChild(rightWave);
+                
+                setTimeout(() => {
+                    leftWave.remove();
+                    rightWave.remove();
+                }, 1800);
+            });
+        });
+    </script>
+</body>
+</html>
