@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AviaScan - Поиск дешевых авиабилетов</title>
+    <link rel="stylesheet" href="css/mainPageStyle.css">
+</head>
+<body>
+    <header class="header">
+
+        <div class="header__container">
+            <h1 class="header__logo">AviaScan</h1>
+            <nav class="header__nav">
+                <button class="header__profile-btn" aria-label="Профиль пользователя">
+                    <svg class="header__profile-icon" width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <section class="search">
+            <h2 class="search__title">Найдите лучшие цены на авиабилеты</h2>
+            <form class="search-form" action="/search" method="GET">
+                <div class="search-form__group">
+                    <label class="search-form__label" for="from">Откуда</label>
+                    <input class="search-form__input" type="text" id="from" name="from" required>
+                </div>
+                <div class="search-form__group">
+                    <label class="search-form__label" for="to">Куда</label>
+                    <input class="search-form__input" type="text" id="to" name="to" required>
+                </div>
+                <button class="search-form__submit" type="submit">Найти билеты</button>
+            </form>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer__container">
+            <p class="footer__copyright">&copy; 2024 AviaScan. Все права защищены.</p>
+        </div>
+    </footer>
+</body>
+</html>

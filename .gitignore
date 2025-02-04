@@ -35,3 +35,4 @@ build/
 target/
 HELP.md
 .gitattributes
+logback-spring.xml
