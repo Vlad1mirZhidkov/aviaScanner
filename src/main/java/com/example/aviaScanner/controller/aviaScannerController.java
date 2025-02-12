@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;  
 import org.springframework.web.bind.annotation.PatchMapping;
 import java.util.Map;
-import com.example.aviaScanner.DTO.AviaScanerUserDTO;
+import com.example.aviaScanner.DTO.AviaScannerUserDTO;
 import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
+import com.example.aviaScanner.DTO.ErrorResponse;
 
 @RestController
 @Validated
@@ -34,7 +36,7 @@ public class aviaScannerController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<AviaScanerUserDTO> createUser(@Valid @RequestBody AviaScanerUserDTO userDTO) {
+    public ResponseEntity<AviaScannerUserDTO> createUser(@Valid @RequestBody AviaScannerUserDTO userDTO) {
         try {
             return ResponseEntity.ok(userDTO);
         } catch (Exception e) {
@@ -43,36 +45,58 @@ public class aviaScannerController {
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<AviaScanerUserEntity> getUserById(@PathVariable Long id){
-        return ResponseEntity.ok(aviaScanerUserSevice.getUserById(id));
+    public ResponseEntity<?> getUserById(@PathVariable Long id){
+        try{
+            if(aviaScanerUserSevice.getUserById(id) == null){
+                throw new Exception("User not found");
+            }
+            return ResponseEntity.ok(aviaScanerUserSevice.getUserById(id));
+        } catch (Exception e){
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setTimestamp(LocalDateTime.now());
+            errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+            errorResponse.setError("Not Found");
+            errorResponse.setMessage("User not found");
+            errorResponse.setPath("/api/users/" + id);
+            
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(errorResponse);
+        }
     }
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id){
-        aviaScanerUserSevice.deleteUser(id);
-        return ResponseEntity.ok("User is deleted");
+        try{
+            if(aviaScanerUserSevice.getUserById(id) == null){
+                throw new Exception("User not found");
+            }
+            return ResponseEntity.ok("User is deleted");
+        } catch (Exception e){
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setTimestamp(LocalDateTime.now());
+            errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+            errorResponse.setError("Not Found");
+            errorResponse.setMessage("User not found");
+            errorResponse.setPath("/api/users/" + id);
+            
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(errorResponse);
+        }
     }
 
     @PatchMapping("/users/{id}")
     public ResponseEntity<?> partialUpdateUser(@PathVariable Long id, @Valid @RequestBody Map<String, Object> updates) {
         try {
-            AviaScanerUserEntity existingUser = aviaScanerUserSevice.getUserById(id);
-            if (updates.containsKey("email")) {
-                existingUser.setEmail((String) updates.get("email"));
-            }
-            if (updates.containsKey("name")) {
-                existingUser.setName((String) updates.get("name"));
-            }
-            if (updates.containsKey("phone")) {
-                existingUser.setPhone((String) updates.get("phone"));
-            }
-            if (updates.containsKey("location")) {
-                existingUser.setLocation((String) updates.get("location"));
-            }
-            return ResponseEntity.ok(aviaScanerUserSevice.updateUser(id, existingUser));
+            return ResponseEntity.ok(aviaScanerUserSevice.updateUser(id, updates));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Ошибка при частичном обновлении пользователя: " + e.getMessage());
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setTimestamp(LocalDateTime.now());
+            errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
+            errorResponse.setError("Not Found");
+            errorResponse.setMessage("User not found");
+            errorResponse.setPath("/api/users/" + id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(errorResponse);
         }
     }
 }

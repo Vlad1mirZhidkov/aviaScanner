@@ -6,6 +6,7 @@ import com.example.aviaScanner.model.AviaScanerUserEntity;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
 
 
 @Slf4j
@@ -34,22 +35,22 @@ public class AviaScanerUserSevice {
         aviaScanerUserRepository.deleteById(id);
     }
 
-    public AviaScanerUserEntity updateUser(Long id, AviaScanerUserEntity user) {
-        AviaScanerUserEntity existingUser = aviaScanerUserRepository.findById(id)
+    public AviaScanerUserEntity updateUser(Long id, Map<String, Object> updates) {
+        AviaScanerUserEntity user = aviaScanerUserRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + id + " не найден"));
-        if (user.getEmail() != null) {
-            existingUser.setEmail(user.getEmail());
+        if (updates.containsKey("email")) {
+            user.setEmail((String) updates.get("email"));
         }
-        if (user.getName() != null) {
-            existingUser.setName(user.getName());
+        if (updates.containsKey("name")) {
+            user.setName((String) updates.get("name"));
         }
-        if (user.getPhone() != null) {
-            existingUser.setPhone(user.getPhone());
+        if (updates.containsKey("phone")) {
+            user.setPhone((String) updates.get("phone"));
         }
-        if (user.getLocation() != null) {
-            existingUser.setLocation(user.getLocation());
+        if (updates.containsKey("location")) {
+            user.setLocation((String) updates.get("location"));
         }
-        return aviaScanerUserRepository.save(existingUser);
+        return aviaScanerUserRepository.save(user);
     }
     
 }

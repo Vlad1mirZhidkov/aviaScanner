@@ -12,7 +12,7 @@ import jakarta.validation.constraints.Past;
 import lombok.Data;
 
 @Data
-public class AviaScanerUserDTO {
+public class AviaScannerUserDTO {
     @NotEmpty
     private String name;
 
