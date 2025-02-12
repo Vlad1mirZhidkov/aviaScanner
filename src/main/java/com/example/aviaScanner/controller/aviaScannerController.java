@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;  
 import org.springframework.web.bind.annotation.PatchMapping;
 import java.util.Map;
+import com.example.aviaScanner.DTO.AviaScanerUserDTO;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.Valid;
 
 @RestController
+@Validated
 @RequestMapping("/api")
 public class aviaScannerController {
     private final AviaScanerUserSevice aviaScanerUserSevice;
@@ -30,25 +34,11 @@ public class aviaScannerController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<?> createUser(@RequestBody AviaScanerUserEntity user) {
+    public ResponseEntity<AviaScanerUserDTO> createUser(@Valid @RequestBody AviaScanerUserDTO userDTO) {
         try {
-            if (user.getEmail() == null || user.getEmail().isEmpty()) {
-                return ResponseEntity.badRequest().body("Email не может быть пустым");
-            }
-            if (user.getName() == null || user.getName().isEmpty()) {
-                return ResponseEntity.badRequest().body("Имя не может быть пустым");
-            }
-            if (user.getPhone() == null || user.getPhone().isEmpty()) {
-                return ResponseEntity.badRequest().body("Телефон не может быть пустым");
-            }
-            if (user.getLocation() == null || user.getLocation().isEmpty()) {
-                return ResponseEntity.badRequest().body("Местоположение не может быть пустым");
-            }
-            
-            return ResponseEntity.ok(aviaScanerUserSevice.createUser(user));
+            return ResponseEntity.ok(userDTO);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Ошибка при создании пользователя: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -64,7 +54,7 @@ public class aviaScannerController {
     }
 
     @PatchMapping("/users/{id}")
-        public ResponseEntity<?> partialUpdateUser(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+    public ResponseEntity<?> partialUpdateUser(@PathVariable Long id, @Valid @RequestBody Map<String, Object> updates) {
         try {
             AviaScanerUserEntity existingUser = aviaScanerUserSevice.getUserById(id);
             if (updates.containsKey("email")) {
@@ -86,5 +76,3 @@ public class aviaScannerController {
         }
     }
 }
-
-
