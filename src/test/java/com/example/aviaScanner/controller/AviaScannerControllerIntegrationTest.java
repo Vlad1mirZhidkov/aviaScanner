@@ -6,9 +6,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.junit.jupiter.api.BeforeAll;
 import java.time.LocalDate;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import static org.assertj.core.api.Assertions.assertThat;
 import com.example.aviaScanner.DTO.AviaScannerUserDTO;
@@ -30,11 +28,8 @@ public class AviaScannerControllerIntegrationTest {
         .withUsername("postgres")
         .withPassword("1234");
 
-    @Autowired
-    private TestRestTemplate restTemplate;
-
     @LocalServerPort
-    private int port;
+    private Integer port;
 
     @BeforeAll
     static void beforeAll(){
@@ -55,8 +50,6 @@ public class AviaScannerControllerIntegrationTest {
         aviaScannerUser.setPhone("+79609062424");
         aviaScannerUser.setLocation("Test_Location");
         aviaScannerUser.setBirthDate(LocalDate.of(1990, 1, 1));
-
-        System.out.println("Request body: " + aviaScannerUser);
 
         AviaScannerUserDTO response = given()
             .port(port)
