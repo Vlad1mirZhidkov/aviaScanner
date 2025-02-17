@@ -43,7 +43,7 @@ public class AviaScannerControllerIntegrationTest {
     
 
     @Test
-    void cuccessTestCreateUser() {
+    void whenCreateUserWithValidData_thenUserCreatedSuccessfully() {
         AviaScannerUserDTO aviaScannerUser = new AviaScannerUserDTO();
         aviaScannerUser.setName("Test_User");
         aviaScannerUser.setEmail("test1@example.com");
@@ -72,7 +72,7 @@ public class AviaScannerControllerIntegrationTest {
     }
 
     @Test
-    void deniedTestCreateUser() {
+    void whenCreateUserWithInvalidData_thenReturnBadRequest() {
         AviaScannerUserDTO userDTO = new AviaScannerUserDTO();
         userDTO.setName("Volodya");
         userDTO.setLocation("Moscow never sleep");
@@ -95,7 +95,7 @@ public class AviaScannerControllerIntegrationTest {
     }
 
     @Test 
-    void successTestGetUser(){
+    void whenGetExistingUser_thenReturnUserData(){
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -113,7 +113,7 @@ public class AviaScannerControllerIntegrationTest {
     }
 
     @Test 
-    void deniedTestGetUser(){
+    void whenGetNonExistingUser_thenReturnNotFound(){
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -130,7 +130,7 @@ public class AviaScannerControllerIntegrationTest {
     }
 
     @Test
-    void successTestDeleteUser(){
+    void whenDeleteExistingUser_thenUserDeleted(){
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -141,7 +141,7 @@ public class AviaScannerControllerIntegrationTest {
     }
 
     @Test
-    void deniedTestDeleteUser(){
+    void whenDeleteNonExistingUser_thenReturnNotFound(){
         given()
             .port(port)
             .contentType(ContentType.JSON)
@@ -158,7 +158,7 @@ public class AviaScannerControllerIntegrationTest {
     }
 
     @Test
-    void successTestUpdateUser(){
+    void whenUpdateExistingUserWithValidData_thenUserUpdated(){
         Map<String, Object> updates = new HashMap<>();
         updates.put("name", "Updated_User");
         updates.put("email", "updated@example.com");
@@ -182,7 +182,7 @@ public class AviaScannerControllerIntegrationTest {
     }
 
     @Test
-    void deniedTestUpdateUser(){
+    void whenUpdateNonExistingUser_thenReturnNotFound(){
         Map<String, Object> updates = new HashMap<>();
         updates.put("name", "Updated_User");
         updates.put("email", "updated@example.com");
