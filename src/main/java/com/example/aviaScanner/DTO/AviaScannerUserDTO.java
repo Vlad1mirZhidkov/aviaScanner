@@ -1,15 +1,19 @@
 package com.example.aviaScanner.DTO;
 
 import java.time.LocalDate;
-
 import jakarta.validation.constraints.*;
-
-import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.*;
 
-@Data
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class AviaScannerUserDTO {
     private Long id;
+    
     @NotEmpty
     private String name;
 

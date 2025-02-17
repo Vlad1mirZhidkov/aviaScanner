@@ -12,11 +12,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.example.aviaScanner.DTO.AviaScannerUserDTO;
 import static io.restassured.RestAssured.given;
 import io.restassured.http.ContentType;
-import static org.hamcrest.Matchers.equalTo;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import com.example.aviaScanner.DTO.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -62,13 +62,13 @@ public class AviaScannerControllerIntegrationTest {
 
     private AviaScannerUserDTO createExistingUser(){
         log.debug("Creating test user DTO");
-        AviaScannerUserDTO expectedUser = new AviaScannerUserDTO();
-        expectedUser.setName("Test_User");
-        expectedUser.setEmail("test1@example.com");
-        expectedUser.setPhone("+79609062424");
-        expectedUser.setLocation("Test_Location");
-        expectedUser.setBirthDate(LocalDate.of(1990, 1, 1));
-        return expectedUser;
+        return AviaScannerUserDTO.builder()
+            .name("Test_User")
+            .email("test1@example.com")
+            .phone("+79609062424")
+            .location("Test_Location")
+            .birthDate(LocalDate.of(1990, 1, 1))
+            .build();
     }
 
     @Test
@@ -89,15 +89,18 @@ public class AviaScannerControllerIntegrationTest {
             .as(AviaScannerUserDTO.class);
 
         log.debug("Created user: {}", actualUser);
-        assertEquals(expectedUser, actualUser);
+        assertThat(actualUser)
+            .usingRecursiveComparison()
+            .isEqualTo(expectedUser);
     }
 
     @Test
     void whenCreateUserWithInvalidData_thenReturnBadRequest() {
         log.info("Testing user creation with invalid data");
-        AviaScannerUserDTO userDTO = new AviaScannerUserDTO();
-        userDTO.setName("Volodya");
-        userDTO.setLocation("Moscow never sleep");
+        AviaScannerUserDTO userDTO = AviaScannerUserDTO.builder()
+            .name("Volodya")
+            .location("Moscow never sleep")
+            .build();
         log.debug("Invalid user data: {}", userDTO);
 
         ErrorResponse errorResponse = given()
@@ -190,11 +193,12 @@ public class AviaScannerControllerIntegrationTest {
     @Test
     void whenUpdateExistingUserWithValidData_thenUserUpdated() {
         log.info("Testing update existing user with valid data");
-        AviaScannerUserDTO expectedUser = new AviaScannerUserDTO();
-        expectedUser.setName("Updated_User");
-        expectedUser.setEmail("updated@example.com");
-        expectedUser.setPhone("+79609062425");
-        expectedUser.setLocation("Updated_Location");
+        AviaScannerUserDTO expectedUser = AviaScannerUserDTO.builder()
+            .name("Updated_User")
+            .email("updated@example.com")
+            .phone("+79609062425")
+            .location("Updated_Location")
+            .build();
         log.debug("Update data: {}", expectedUser);
 
         AviaScannerUserDTO actualUser = given()
@@ -210,20 +214,20 @@ public class AviaScannerControllerIntegrationTest {
             .as(AviaScannerUserDTO.class);
 
         log.debug("Updated user: {}", actualUser);
-        assertEquals(expectedUser.getName(), actualUser.getName());
-        assertEquals(expectedUser.getEmail(), actualUser.getEmail());
-        assertEquals(expectedUser.getPhone(), actualUser.getPhone());
-        assertEquals(expectedUser.getLocation(), actualUser.getLocation());
+        assertThat(actualUser)
+            .usingRecursiveComparison()
+            .isEqualTo(expectedUser);
     }
 
     @Test
     void whenUpdateNonExistingUser_thenReturnNotFound(){
         log.info("Testing update non-existing user");
-        AviaScannerUserDTO updates = new AviaScannerUserDTO();
-        updates.setName("Updated_User");
-        updates.setEmail("updated@example.com");
-        updates.setPhone("+79609062425");
-        updates.setLocation("Updated_Location");
+        AviaScannerUserDTO updates = AviaScannerUserDTO.builder()
+            .name("Updated_User")
+            .email("updated@example.com")
+            .phone("+79609062425")
+            .location("Updated_Location")
+            .build();
         log.debug("Update data: {}", updates);
 
         ErrorResponse errorResponse = given()
