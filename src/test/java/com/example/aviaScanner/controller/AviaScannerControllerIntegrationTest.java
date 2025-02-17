@@ -15,9 +15,7 @@ import io.restassured.http.ContentType;
 import static org.hamcrest.Matchers.equalTo;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import java.util.Map;
-import java.util.HashMap;
-
+import com.example.aviaScanner.DTO.ErrorResponse;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @Testcontainers
@@ -40,16 +38,36 @@ public class AviaScannerControllerIntegrationTest {
     static void afterAll(){
         postgres.stop();
     }
-    
 
-    @Test
-    void whenCreateUserWithValidData_thenUserCreatedSuccessfully() {
+    private void assertErrorResponseNotFoundFields(ErrorResponse errorResponse, int status, String path) {
+        assertEquals(status, errorResponse.getStatus());
+        assertEquals("Not Found", errorResponse.getError());
+        assertEquals("User not found", errorResponse.getMessage());
+        assertEquals(path, errorResponse.getPath());
+    }
+
+    private void assertErrorResponseBadRequestFields(ErrorResponse errorResponse) {
+        assertEquals(400, errorResponse.getStatus());
+        assertEquals("Bad Request", errorResponse.getError());
+        assertTrue(errorResponse.getMessage().contains("Validation failed"));
+        assertEquals("/api/users", errorResponse.getPath());
+        assertNotNull(errorResponse.getTimestamp());
+    }
+
+    private AviaScannerUserDTO createExistingUser(){
         AviaScannerUserDTO expectedUser = new AviaScannerUserDTO();
         expectedUser.setName("Test_User");
         expectedUser.setEmail("test1@example.com");
         expectedUser.setPhone("+79609062424");
         expectedUser.setLocation("Test_Location");
         expectedUser.setBirthDate(LocalDate.of(1990, 1, 1));
+
+        return expectedUser;
+    }
+
+    @Test
+    void whenCreateUserWithValidData_thenUserCreatedSuccessfully() {
+        AviaScannerUserDTO expectedUser = createExistingUser();
 
         AviaScannerUserDTO actualUser = given()
             .port(port)
@@ -72,56 +90,55 @@ public class AviaScannerControllerIntegrationTest {
         userDTO.setName("Volodya");
         userDTO.setLocation("Moscow never sleep");
 
-        given()
+        ErrorResponse errorResponse = given()
             .port(port)
             .contentType(ContentType.JSON)
             .body(userDTO)
         .when()
             .post("/api/users")
         .then()
-            .log().body()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .contentType(ContentType.JSON)
-            .body("status", equalTo(400))
-            .body("error", equalTo("Bad Request"))
-            .body("message", org.hamcrest.Matchers.containsString("Validation failed"))
-            .body("path", equalTo("/api/users"))
-            .body("timestamp", org.hamcrest.Matchers.notNullValue());
+            .extract()
+            .as(ErrorResponse.class);
+
+        assertErrorResponseBadRequestFields(errorResponse);
     }
 
     @Test 
     void whenGetExistingUser_thenReturnUserData(){
-        given()
+        AviaScannerUserDTO actualUser = given()
             .port(port)
             .contentType(ContentType.JSON)
         .when()
             .get("/api/users/6")
         .then()
-            .log().body()
             .statusCode(HttpStatus.OK.value())
             .contentType(ContentType.JSON)
-            .body("name", org.hamcrest.Matchers.notNullValue())
-            .body("email", org.hamcrest.Matchers.notNullValue())
-            .body("location", org.hamcrest.Matchers.notNullValue())
-            .body("phone", org.hamcrest.Matchers.notNullValue())
-            .body("birthDate", org.hamcrest.Matchers.notNullValue());
+            .extract()
+            .as(AviaScannerUserDTO.class);
+
+        assertNotNull(actualUser.getName());
+        assertNotNull(actualUser.getEmail());
+        assertNotNull(actualUser.getLocation());
+        assertNotNull(actualUser.getPhone());
+        assertNotNull(actualUser.getBirthDate());
     }
 
     @Test 
     void whenGetNonExistingUser_thenReturnNotFound(){
-        given()
+        ErrorResponse errorResponse = given()
             .port(port)
             .contentType(ContentType.JSON)
         .when()
             .get("/api/users/100")
         .then()
-            .log().body()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .contentType(ContentType.JSON)
-            .body("status", equalTo(404))
-            .body("error", equalTo("Not Found"))
-            .body("message", equalTo("User not found"))
-            .body("path", equalTo("/api/users/100"));
+            .extract()
+            .as(ErrorResponse.class);
+
+        assertErrorResponseNotFoundFields(errorResponse, 404, "/api/users/100");
     }
 
     @Test
@@ -137,19 +154,18 @@ public class AviaScannerControllerIntegrationTest {
 
     @Test
     void whenDeleteNonExistingUser_thenReturnNotFound(){
-        given()
+        ErrorResponse errorResponse = given()
             .port(port)
             .contentType(ContentType.JSON)
         .when()
             .delete("/api/users/100")
         .then()
-            .log().body()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .contentType(ContentType.JSON)
-            .body("status", equalTo(404))
-            .body("error", equalTo("Not Found"))
-            .body("message", equalTo("User not found"))
-            .body("path", equalTo("/api/users/100"));
+            .extract()
+            .as(ErrorResponse.class);
+
+        assertErrorResponseNotFoundFields(errorResponse, 404, "/api/users/100");
     }
 
     @Test
@@ -180,24 +196,24 @@ public class AviaScannerControllerIntegrationTest {
 
     @Test
     void whenUpdateNonExistingUser_thenReturnNotFound(){
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("name", "Updated_User");
-        updates.put("email", "updated@example.com");
-        updates.put("phone", "+79609062425");
-        updates.put("location", "Updated_Location");
-        given()
+        AviaScannerUserDTO updates = new AviaScannerUserDTO();
+        updates.setName("Updated_User");
+        updates.setEmail("updated@example.com");
+        updates.setPhone("+79609062425");
+        updates.setLocation("Updated_Location");
+
+        ErrorResponse errorResponse = given()
             .port(port)
             .contentType(ContentType.JSON)
             .body(updates)
         .when()
             .patch("/api/users/999")
         .then()
-            .log().body()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .contentType(ContentType.JSON)
-            .body("status", equalTo(404))
-            .body("error", equalTo("Not Found"))
-            .body("message", equalTo("User not found"))
-            .body("path", equalTo("/api/users/999"));
+            .extract()
+            .as(ErrorResponse.class);
+
+        assertErrorResponseNotFoundFields(errorResponse, 404, "/api/users/999");
     }
 }
