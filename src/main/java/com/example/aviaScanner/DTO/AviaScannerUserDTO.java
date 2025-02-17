@@ -10,9 +10,13 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Past;
 
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AviaScannerUserDTO {
+    private Long id;
     @NotEmpty
     private String name;
 
@@ -29,5 +33,6 @@ public class AviaScannerUserDTO {
 
     @NotNull
     @Past
+    @JsonFormat(pattern = "dd.MM.yyyy")
     private LocalDate birthDate;
 } 

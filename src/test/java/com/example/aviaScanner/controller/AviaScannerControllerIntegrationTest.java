@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import com.example.aviaScanner.DTO.AviaScannerUserDTO;
 import static io.restassured.RestAssured.given;
 import io.restassured.http.ContentType;
@@ -44,31 +44,26 @@ public class AviaScannerControllerIntegrationTest {
 
     @Test
     void whenCreateUserWithValidData_thenUserCreatedSuccessfully() {
-        AviaScannerUserDTO aviaScannerUser = new AviaScannerUserDTO();
-        aviaScannerUser.setName("Test_User");
-        aviaScannerUser.setEmail("test1@example.com");
-        aviaScannerUser.setPhone("+79609062424");
-        aviaScannerUser.setLocation("Test_Location");
-        aviaScannerUser.setBirthDate(LocalDate.of(1990, 1, 1));
+        AviaScannerUserDTO expectedUser = new AviaScannerUserDTO();
+        expectedUser.setName("Test_User");
+        expectedUser.setEmail("test1@example.com");
+        expectedUser.setPhone("+79609062424");
+        expectedUser.setLocation("Test_Location");
+        expectedUser.setBirthDate(LocalDate.of(1990, 1, 1));
 
-        AviaScannerUserDTO response = given()
+        AviaScannerUserDTO actualUser = given()
             .port(port)
             .contentType(ContentType.JSON)
-            .body(aviaScannerUser)
+            .body(expectedUser)
         .when()
             .post("/api/users")
         .then()
             .statusCode(HttpStatus.OK.value())
             .contentType(ContentType.JSON)
-            .body("name", equalTo("Test_User"))
-            .body("email", equalTo("test1@example.com"))
-            .body("location", equalTo("Test_Location"))
-            .body("phone", equalTo("+79609062424"))
             .extract()
             .as(AviaScannerUserDTO.class);
 
-        assertThat(response).isNotNull();
-        assertThat(response.getBirthDate()).isEqualTo(LocalDate.of(1990, 1, 1));
+        assertEquals(expectedUser, actualUser);
     }
 
     @Test
@@ -158,27 +153,29 @@ public class AviaScannerControllerIntegrationTest {
     }
 
     @Test
-    void whenUpdateExistingUserWithValidData_thenUserUpdated(){
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("name", "Updated_User");
-        updates.put("email", "updated@example.com");
-        updates.put("phone", "+79609062425");
-        updates.put("location", "Updated_Location");
+    void whenUpdateExistingUserWithValidData_thenUserUpdated() {
+        AviaScannerUserDTO expectedUser = new AviaScannerUserDTO();
+        expectedUser.setName("Updated_User");
+        expectedUser.setEmail("updated@example.com");
+        expectedUser.setPhone("+79609062425");
+        expectedUser.setLocation("Updated_Location");
 
-        given()
+        AviaScannerUserDTO actualUser = given()
             .port(port)
             .contentType(ContentType.JSON)
-            .body(updates)
+            .body(expectedUser)
         .when()
             .patch("/api/users/6")
         .then()
-            .log().body()
             .statusCode(HttpStatus.OK.value())
             .contentType(ContentType.JSON)
-            .body("name", equalTo("Updated_User"))
-            .body("email", equalTo("updated@example.com"))
-            .body("phone", equalTo("+79609062425"))
-            .body("location", equalTo("Updated_Location"));
+            .extract()
+            .as(AviaScannerUserDTO.class);
+
+        assertEquals(expectedUser.getName(), actualUser.getName());
+        assertEquals(expectedUser.getEmail(), actualUser.getEmail());
+        assertEquals(expectedUser.getPhone(), actualUser.getPhone());
+        assertEquals(expectedUser.getLocation(), actualUser.getLocation());
     }
 
     @Test
