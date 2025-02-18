@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Map;
+import com.example.aviaScanner.DTO.AviaScannerUserDTO;
 
 
 @Slf4j
@@ -24,11 +25,31 @@ public class AviaScanerUserSevice {
         return aviaScanerUserRepository.findById(id).orElse(null);
     }
 
-    public AviaScanerUserEntity createUser(AviaScanerUserEntity user) {
-        if (user.getEmail() == null || user.getEmail().isEmpty()) {
-            throw new IllegalArgumentException("Email не может быть пустым");
-        }
-        return aviaScanerUserRepository.save(user);
+    public AviaScannerUserDTO createUser(AviaScannerUserDTO userDTO) {
+        AviaScanerUserEntity entity = convertToEntity(userDTO);
+        AviaScanerUserEntity savedEntity = aviaScanerUserRepository.save(entity);
+        return convertToDTO(savedEntity);
+    }
+
+    private AviaScanerUserEntity convertToEntity(AviaScannerUserDTO dto) {
+        return AviaScanerUserEntity.builder()
+            .name(dto.getName())
+            .email(dto.getEmail())
+            .phone(dto.getPhone())
+            .location(dto.getLocation())
+            .birthDate(dto.getBirthDate())
+            .build();
+    }
+
+    private AviaScannerUserDTO convertToDTO(AviaScanerUserEntity entity) {
+        return AviaScannerUserDTO.builder()
+            .id(entity.getId())
+            .name(entity.getName())
+            .email(entity.getEmail())
+            .phone(entity.getPhone())
+            .location(entity.getLocation())
+            .birthDate(entity.getBirthDate())
+            .build();
     }
 
     public void deleteUser(Long id){

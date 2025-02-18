@@ -38,7 +38,8 @@ public class aviaScannerController {
     @PostMapping("/users")
     public ResponseEntity<AviaScannerUserDTO> createUser(@Valid @RequestBody AviaScannerUserDTO userDTO) {
         try {
-            return ResponseEntity.ok(userDTO);
+            AviaScannerUserDTO createdUser = aviaScanerUserSevice.createUser(userDTO);
+            return ResponseEntity.ok(createdUser);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -70,6 +71,7 @@ public class aviaScannerController {
             if(aviaScanerUserSevice.getUserById(id) == null){
                 throw new Exception("User not found");
             }
+            aviaScanerUserSevice.deleteUser(id);
             return ResponseEntity.ok("User is deleted");
         } catch (Exception e){
             ErrorResponse errorResponse = new ErrorResponse();
@@ -87,6 +89,9 @@ public class aviaScannerController {
     @PatchMapping("/users/{id}")
     public ResponseEntity<?> partialUpdateUser(@PathVariable Long id, @Valid @RequestBody Map<String, Object> updates) {
         try {
+            if(aviaScanerUserSevice.getUserById(id) == null){
+                throw new Exception("User not found");
+            }
             return ResponseEntity.ok(aviaScanerUserSevice.updateUser(id, updates));
         } catch (Exception e) {
             ErrorResponse errorResponse = new ErrorResponse();

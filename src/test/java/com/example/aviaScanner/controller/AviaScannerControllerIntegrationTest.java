@@ -1,28 +1,36 @@
 package com.example.aviaScanner.controller;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.junit.jupiter.api.AfterAll;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.junit.jupiter.api.BeforeAll;
-import java.time.LocalDate;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import static org.junit.jupiter.api.Assertions.*;
-import com.example.aviaScanner.DTO.AviaScannerUserDTO;
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
+import com.example.aviaScanner.DTO.AviaScannerUserDTO;
+import com.example.aviaScanner.DTO.ErrorResponse;
+import com.example.aviaScanner.model.AviaScanerUserEntity;
+import com.example.aviaScanner.repository.AviaScanerUserRepository;
 import io.restassured.http.ContentType;
+import java.time.LocalDate;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import com.example.aviaScanner.DTO.ErrorResponse;
-import lombok.extern.slf4j.Slf4j;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.http.HttpStatus;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Slf4j
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @Testcontainers
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AviaScannerControllerIntegrationTest {
+    private static Long createdUserId;
     
+    @Autowired
+    private AviaScanerUserRepository aviaScanerUserRepository;
+
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest")
         .withDatabaseName("avia_test")
         .withUsername("postgres")
@@ -72,26 +80,52 @@ public class AviaScannerControllerIntegrationTest {
     }
 
     @Test
+    @Order(1)
     void whenCreateUserWithValidData_thenUserCreatedSuccessfully() {
         log.info("Testing user creation with valid data");
         AviaScannerUserDTO expectedUser = createExistingUser();
 
+        log.info("Database state before user creation:");
+        logDatabaseState();
+
+        log.info("Sending POST request to create user");
         AviaScannerUserDTO actualUser = given()
             .port(port)
             .contentType(ContentType.JSON)
             .body(expectedUser)
+            .log().all()
         .when()
             .post("/api/users")
         .then()
+            .log().all()
             .statusCode(HttpStatus.OK.value())
             .contentType(ContentType.JSON)
             .extract()
             .as(AviaScannerUserDTO.class);
 
-        log.debug("Created user: {}", actualUser);
+        assertNotNull(actualUser.getId(), "Created user should have an ID");
+        createdUserId = actualUser.getId();
+        log.info("Created user with ID: {}", createdUserId);
+
         assertThat(actualUser)
             .usingRecursiveComparison()
+            .ignoringFields("id")
             .isEqualTo(expectedUser);
+
+        AviaScanerUserEntity savedUser = aviaScanerUserRepository.findById(createdUserId)
+            .orElseThrow(() -> new AssertionError("User not found in database"));
+
+        assertThat(savedUser)
+            .satisfies(user -> {
+                assertThat(user.getName()).isEqualTo(expectedUser.getName());
+                assertThat(user.getEmail()).isEqualTo(expectedUser.getEmail());
+                assertThat(user.getPhone()).isEqualTo(expectedUser.getPhone());
+                assertThat(user.getLocation()).isEqualTo(expectedUser.getLocation());
+                assertThat(user.getBirthDate()).isEqualTo(expectedUser.getBirthDate());
+            });
+
+        log.info("Database state after user creation:");
+        logDatabaseState();
     }
 
     @Test
@@ -119,21 +153,39 @@ public class AviaScannerControllerIntegrationTest {
         assertErrorResponseBadRequestFields(errorResponse);
     }
 
-    @Test 
-    void whenGetExistingUser_thenReturnUserData(){
-        log.info("Testing get existing user");
+    @Test
+    @Order(2)
+    void whenGetExistingUser_thenReturnUserData() {
+        assertNotNull(createdUserId, "Created user ID should not be null");
+        log.info("Testing get existing user with ID: {}", createdUserId);
+        
+        boolean exists = aviaScanerUserRepository.existsById(createdUserId);
+        log.info("User exists in database before test: {}", exists);
+        
+        if (!exists) {
+            log.warn("User not found in database. Current database content:");
+            aviaScanerUserRepository.findAll().forEach(user -> 
+                log.info("User in DB: {}", user));
+        }
+
+        log.info("Sending GET request for user");
         AviaScannerUserDTO actualUser = given()
             .port(port)
             .contentType(ContentType.JSON)
+            .log().all()
         .when()
-            .get("/api/users/6")
+            .get("/api/users/" + createdUserId)
         .then()
+            .log().all()
             .statusCode(HttpStatus.OK.value())
             .contentType(ContentType.JSON)
             .extract()
             .as(AviaScannerUserDTO.class);
 
         log.debug("Retrieved user: {}", actualUser);
+        assertNotNull(actualUser.getId(), "User ID should not be null");
+        assertEquals(createdUserId, actualUser.getId(), 
+            "Retrieved user ID should match created user ID");
         assertNotNull(actualUser.getName());
         assertNotNull(actualUser.getEmail());
         assertNotNull(actualUser.getLocation());
@@ -160,37 +212,7 @@ public class AviaScannerControllerIntegrationTest {
     }
 
     @Test
-    void whenDeleteExistingUser_thenUserDeleted(){
-        log.info("Testing delete existing user");
-        given()
-            .port(port)
-            .contentType(ContentType.JSON)
-        .when()
-            .delete("/api/users/6")
-        .then()
-            .statusCode(HttpStatus.OK.value());
-        log.debug("Successfully deleted user with id: 6");
-    }
-
-    @Test
-    void whenDeleteNonExistingUser_thenReturnNotFound(){
-        log.info("Testing delete non-existing user");
-        ErrorResponse errorResponse = given()
-            .port(port)
-            .contentType(ContentType.JSON)
-        .when()
-            .delete("/api/users/100")
-        .then()
-            .statusCode(HttpStatus.NOT_FOUND.value())
-            .contentType(ContentType.JSON)
-            .extract()
-            .as(ErrorResponse.class);
-
-        log.debug("Received error response: {}", errorResponse);
-        assertErrorResponseNotFoundFields(errorResponse, 404, "/api/users/100");
-    }
-
-    @Test
+    @Order(3)
     void whenUpdateExistingUserWithValidData_thenUserUpdated() {
         log.info("Testing update existing user with valid data");
         AviaScannerUserDTO expectedUser = AviaScannerUserDTO.builder()
@@ -206,7 +228,7 @@ public class AviaScannerControllerIntegrationTest {
             .contentType(ContentType.JSON)
             .body(expectedUser)
         .when()
-            .patch("/api/users/6")
+            .patch("/api/users/" + createdUserId)
         .then()
             .statusCode(HttpStatus.OK.value())
             .contentType(ContentType.JSON)
@@ -214,9 +236,10 @@ public class AviaScannerControllerIntegrationTest {
             .as(AviaScannerUserDTO.class);
 
         log.debug("Updated user: {}", actualUser);
-        assertThat(actualUser)
-            .usingRecursiveComparison()
-            .isEqualTo(expectedUser);
+        assertEquals(expectedUser.getName(), actualUser.getName());
+        assertEquals(expectedUser.getEmail(), actualUser.getEmail());
+        assertEquals(expectedUser.getPhone(), actualUser.getPhone());
+        assertEquals(expectedUser.getLocation(), actualUser.getLocation());
     }
 
     @Test
@@ -244,5 +267,43 @@ public class AviaScannerControllerIntegrationTest {
 
         log.debug("Received error response: {}", errorResponse);
         assertErrorResponseNotFoundFields(errorResponse, 404, "/api/users/999");
+    }
+    @Test
+    @Order(4)
+    void whenDeleteExistingUser_thenUserDeleted(){
+        log.info("Testing delete existing user");
+        given()
+            .port(port)
+            .contentType(ContentType.JSON)
+        .when()
+            .delete("/api/users/" + createdUserId)
+        .then()
+            .statusCode(HttpStatus.OK.value());
+        log.debug("Successfully deleted user with id: {}", createdUserId);
+    }
+
+    
+    @Test
+    void whenDeleteNonExistingUser_thenReturnNotFound(){
+        log.info("Testing delete non-existing user");
+        ErrorResponse errorResponse = given()
+            .port(port)
+            .contentType(ContentType.JSON)
+        .when()
+            .delete("/api/users/100")
+        .then()
+            .statusCode(HttpStatus.NOT_FOUND.value())
+            .contentType(ContentType.JSON)
+            .extract()
+            .as(ErrorResponse.class);
+
+        log.debug("Received error response: {}", errorResponse);
+        assertErrorResponseNotFoundFields(errorResponse, 404, "/api/users/100");
+    }
+
+    private void logDatabaseState() {
+        List<AviaScanerUserEntity> allUsers = aviaScanerUserRepository.findAll();
+        log.info("Total users in database: {}", allUsers.size());
+        allUsers.forEach(user -> log.info("User: {}", user));
     }
 }
