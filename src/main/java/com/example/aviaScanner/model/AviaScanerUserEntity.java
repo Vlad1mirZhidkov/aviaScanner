@@ -9,11 +9,21 @@ import jakarta.persistence.Column;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import lombok.Data;
+import lombok.Builder;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Data
 @Entity
 @Table(name = "app_scanner_user")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class AviaScanerUserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
