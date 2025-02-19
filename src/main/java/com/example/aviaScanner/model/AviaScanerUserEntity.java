@@ -18,7 +18,7 @@ import lombok.AllArgsConstructor;
 
 @Data
 @Entity
-@Table(name = "users")
+@Table(name = "app_scanner_user")
 @Getter
 @Setter
 @NoArgsConstructor

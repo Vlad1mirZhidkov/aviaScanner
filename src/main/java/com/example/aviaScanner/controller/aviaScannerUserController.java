@@ -23,10 +23,10 @@ import com.example.aviaScanner.DTO.ErrorResponse;
 @RestController
 @Validated
 @RequestMapping("/api")
-public class aviaScannerController {
+public class aviaScannerUserController {
     private final AviaScanerUserSevice aviaScanerUserSevice;
 
-    public aviaScannerController(AviaScanerUserSevice aviaScanerUserSevice) {
+    public aviaScannerUserController(AviaScanerUserSevice aviaScanerUserSevice) {
         this.aviaScanerUserSevice = aviaScanerUserSevice;
     }
 
@@ -38,8 +38,7 @@ public class aviaScannerController {
     @PostMapping("/users")
     public ResponseEntity<AviaScannerUserDTO> createUser(@Valid @RequestBody AviaScannerUserDTO userDTO) {
         try {
-            AviaScannerUserDTO createdUser = aviaScanerUserSevice.createUser(userDTO);
-            return ResponseEntity.ok(createdUser);
+            return ResponseEntity.ok(aviaScanerUserSevice.createUser(userDTO));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

@@ -20,11 +20,15 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 @Slf4j
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@ActiveProfiles("test")
 public class AviaScannerControllerIntegrationTest {
     private static Long createdUserId;
     
@@ -117,11 +121,11 @@ public class AviaScannerControllerIntegrationTest {
 
         assertThat(savedUser)
             .satisfies(user -> {
-                assertThat(user.getName()).isEqualTo(expectedUser.getName());
-                assertThat(user.getEmail()).isEqualTo(expectedUser.getEmail());
-                assertThat(user.getPhone()).isEqualTo(expectedUser.getPhone());
-                assertThat(user.getLocation()).isEqualTo(expectedUser.getLocation());
-                assertThat(user.getBirthDate()).isEqualTo(expectedUser.getBirthDate());
+                assertEquals(expectedUser.getName(), user.getName());
+                assertEquals(expectedUser.getEmail(), user.getEmail()); 
+                assertEquals(expectedUser.getPhone(), user.getPhone());
+                assertEquals(expectedUser.getLocation(), user.getLocation());
+                assertEquals(expectedUser.getBirthDate(), user.getBirthDate());
             });
 
         log.info("Database state after user creation:");
